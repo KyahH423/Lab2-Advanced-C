@@ -8,10 +8,11 @@
  *           Creation Date:	 9/12/2023		
  * -------------------------------------------------------------------
  */
-
 using Lab2_Advanced_C_;
 using System.Diagnostics;
 using System.Linq;
+
+
 
 
 /******************************* PULL IN FILE DATA ********************************/
@@ -28,15 +29,14 @@ using (StreamReader reader = new StreamReader(filePath))
         string newGame = reader.ReadLine();
         string[] gameData = newGame.Split(',');
 
-        VideoGame game = new VideoGame(gameData[0], gameData[1], Convert.ToInt32(gameData[2]), gameData[3], gameData[4], Convert.ToDouble(gameData[5]), Convert.ToDouble(gameData[6]), Convert.ToDouble(gameData[7]), Convert.ToDouble(gameData[8]), Convert.ToDouble(gameData[9]));
+        VideoGame game = new VideoGame(gameData[0], gameData[1], gameData[2], gameData[3], gameData[4], Convert.ToDouble(gameData[5]), Convert.ToDouble(gameData[6]), Convert.ToDouble(gameData[7]), Convert.ToDouble(gameData[8]), Convert.ToDouble(gameData[9]));
         gamesList.Add(game);
     }
     reader.Close();
 }
 gamesList.Sort();
 
-List<VideoGame> gamesByYear = new List<VideoGame>();
-gamesByYear = gamesList.OrderBy(x => x.Year).ToList();
+
 Stack<VideoGame> newest = new Stack<VideoGame>();
 Queue<VideoGame> oldest = new Queue<VideoGame>();
 
@@ -52,6 +52,7 @@ List<string> genreNum = new List<string>();
 
 /******************************** GENRE DICTIONARY *********************************/
 Dictionary<string, List<VideoGame>> genreDictionary = new Dictionary<string, List<VideoGame>>();
+
 IEnumerable<string> allGenres = gamesList.Select(game => game.Genre.ToLower()).Distinct();
 List<string> genres = allGenres.ToList();
 genres.Sort();
@@ -65,8 +66,7 @@ for (int i = 0; i < genres.Count; i++)
         newList.Add(game);
     }
 }
-
-// USed reference from https://www.codeproject.com/Tips/786253/Transform-a-List-To-Dictionary-of-Lists as inspiration
+// Used reference from https://www.codeproject.com/Tips/786253/Transform-a-List-To-Dictionary-of-Lists as inspiration
 genreDictionary = newList.GroupBy(k => k.Genre, v => v).ToDictionary(g => g.Key, g => g.ToList());
 newList.Clear();
 
@@ -91,23 +91,25 @@ publisherDictionary = newList.GroupBy(k => k.Publisher, v => v).ToDictionary(g =
 newList.Clear();
 
 
+
 /*********************************** USER MENU *************************************/
 while (run == true)
 {
     Console.Clear();
     Console.WriteLine("Welcome, would you like to view games within our data ");
-    Console.WriteLine("1. View games by Genre\n2. View games by Publisher\n3. Access Wish List\n4. End Program");
+    Console.WriteLine("1. View games by Genre\n2. View games by Publisher\n3. Add to Wish List\n4. Access Wish List\n5. End Program");
     menuOption = Console.ReadLine();
     while ((int.TryParse(menuOption, out int id) == false) || Convert.ToInt32(menuOption) != 1 && Convert.ToInt32(menuOption) != 2 && Convert.ToInt32(menuOption) != 3 && Convert.ToInt32(menuOption) != 4)
     {
         Console.WriteLine("Error: Invalid Input");
-        Console.WriteLine("Please enter 1,2,3, or 4 based on what you wish to do:");
+        Console.WriteLine("Please enter 1,2, or 3 based on what you wish to do:");
         menuOption = Console.ReadLine();
     }
     switch (Convert.ToInt32(menuOption))
     {
         case 1:
             {
+                // Displays Genre Information
                 Console.Clear();
                 userInput = "Y";
                 while (Convert.ToChar(userInput) == 'Y' || Convert.ToChar(userInput) == 'y')
@@ -125,6 +127,7 @@ while (run == true)
             }
         case 2:
             {
+                // Displays Publisher Information
                 Console.Clear();
                 userInput = "Y";
                 while (Convert.ToChar(userInput) == 'Y' || Convert.ToChar(userInput) == 'y')
@@ -142,53 +145,130 @@ while (run == true)
             }
         case 3:
             {
-                
+                // Adding games to wish list 
+                // I'm so sorry, hours of pain
+
                 Console.Clear();
-                Console.WriteLine("Would you like to view all games starting with 1.Oldest or 2.Youngest:");
-                userInput = Console.ReadLine();
-                while ((int.TryParse(userInput, out int id) == false) || Convert.ToInt32(userInput) != 1 && Convert.ToInt32(userInput) != 2)
+                Console.WriteLine("Please select a genre to view games for");
+                UseGenreDictionary();
+                string userG = userInput;
+                CallByGenre(genreDictionary.ElementAt(Convert.ToInt32(userG) - 1).Key);
+                int gc = 0;
+                foreach (var g in genreDictionary.ElementAt(Convert.ToInt32(userG) - 1).Value)
                 {
-                    Console.WriteLine("Error: Invalid Input\nPlease enter 1 for olderst or 2 for newest:");
+                    gc++;
+                }
+                addGames = true;
+                while (addGames == true)
+                {
+                    VideoGame newGame = new VideoGame();
+                    counter = genreNum.Count + 1;
+                    while (oldest.Count < 3)
+                    {
+                        Console.WriteLine("You must add atleast 3 games to your wish list:");
+                        Console.WriteLine($"Enter Game {counter}: ");
+                        userInput = Console.ReadLine();
+                        
+                        while ((int.TryParse(userInput, out int id) == false) || Convert.ToInt32(userInput) <= 0 || Convert.ToInt32(userInput) > gc || genreNum.Contains($"{userG}.{userInput}"))
+                        {
+                            Console.WriteLine("That game does not exist or has already been added to your list, please enter a valid number: ");
+                            userInput = Console.ReadLine();
+                        }
+
+                        var i = 0;
+                        foreach (var g in genreDictionary.ElementAt(Convert.ToInt32(userG) - 1).Value)
+                        {
+                            if (Convert.ToInt32(userInput) - 1 == i)
+                            {
+                                newGame = new VideoGame(g);
+                            }
+                            i++;
+                        }
+                        oldest.Enqueue(newGame);
+                        newest.Push(newGame);
+                        genreNum.Add($"{userG}.{userInput}");
+                        counter++;        
+                    }
+                    Console.WriteLine("Would you like to add another game to your Wish List? Enter 'Y' for YES or 'N' to return to the main menu:");
                     userInput = Console.ReadLine();
+                    userInput = YesOrNo(userInput);
+                    if (Convert.ToChar(userInput) == 'Y' || Convert.ToChar(userInput) == 'y')
+                    {
+                        Console.WriteLine($"Enter Game {counter}: ");
+                        userInput = Console.ReadLine();
+                        while ((int.TryParse(userInput, out int id) == false) || Convert.ToInt32(userInput) <= 0 || Convert.ToInt32(userInput) > gc || genreNum.Contains($"{userG}.{userInput}"))
+                        {
+                            Console.WriteLine("That game does not exist or has already been added to your list, please enter a valid number: ");
+                            userInput = Console.ReadLine();
+                        }
+                        var i = 0;
+                        foreach (var g in genreDictionary.ElementAt(Convert.ToInt32(userG) - 1).Value)
+                        {
+                            if (Convert.ToInt32(userInput) - 1 == i)
+                            {
+                                newGame = new VideoGame(g);
+                            }
+                            i++;
+                        }
+                        oldest.Enqueue(newGame);
+                        newest.Push(newGame);
+                        genreNum.Add($"{userG}.{userInput}");
+                        counter++;
+                    }
+                    else
+                    {
+                        addGames = false;
+                        continue;
+                    }
                 }
-
-                // :|    I originally wanted to do a wish list but after 4 hours of coding I gave up after the 150+ lines were unsalvagable 
-                // QUEUE EXAMPLE
-                if (Convert.ToInt32(userInput) == 1)
-                {
-                    for (int i = 0; i < gamesByYear.Count; i++)
-                    {
-                        oldest.Enqueue(gamesByYear[i]);
-                    }
-                    foreach (var game in oldest)
-                    {
-                        Console.WriteLine($"{game.Name} released in {game.Year}");
-                    }
-                }
-
-                // STACK EXAMPLE
-                else
-                {
-                    for (int i = 0; i < gamesByYear.Count; i++)
-                    {
-                        newest.Push(gamesByYear[i]);
-                    }
-                    foreach(var game in newest)
-                    {
-                        Console.WriteLine($"{game.Name} released in {game.Year}");
-                    }
-                }
-                Console.WriteLine("Press enter to returnt o the main menu after viewing the games");
-                Console.ReadLine();
-
-               
                 break;
             }
         case 4:
             {
-                run = false;
+                Console.Clear();
+                if(oldest.Count == 0)
+                {
+                    Console.WriteLine("Your wish list is currently empty, please add to wish list to view.\nPress the enter key to return to the main menu");
+                    Console.ReadLine();
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Would you like to view your wish list by 1. Oldest or 2. Newest: ");
+                    userInput = Console.ReadLine() ;
+                    while((int.TryParse(userInput, out int id) == false) || Convert.ToInt32(userInput) != 1 && Convert.ToInt32(userInput) != 2)
+                    {
+                        Console.WriteLine("Error: Invalid Input");
+                        Console.WriteLine("Please enter 1 or 2:");
+                        userInput = Console.ReadLine();
+                    }
+
+
+                    if(Convert.ToInt32(userInput) == 1)
+                    {
+                        Console.WriteLine("Here is your wish list starting at your oldest additions:");
+                        foreach(VideoGame g in oldest)
+                        {
+                            Console.WriteLine(g);
+                        }
+                        Console.WriteLine("When you are done, please press enter to return to the main menu:");
+                        Console.ReadLine();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Here is your wish list starting at your newest additions:");
+                        foreach (VideoGame g in newest)
+                        {
+                            Console.WriteLine(g);
+                        }
+                        Console.WriteLine("When you are done, please press enter to return to the main menu:");
+                        Console.ReadLine();
+                    }
+                }
                 break;
             }
+
+       
         default:
             {
                 break;
@@ -273,4 +353,3 @@ void UsePublisherDictionary()
         userInput = Console.ReadLine();
     }
 }
-

@@ -1,6 +1,6 @@
 ﻿/*       
  *--------------------------------------------------------------------
- * 	   File name: VideoGame
+ * 	   File name: Progra
  * 	Project name: Lab2_Advanced_C#
  *--------------------------------------------------------------------
  * Author’s name and email:	 Kyah Hanson - hansonkm@etsu.edu				
@@ -20,7 +20,7 @@ namespace Lab2_Advanced_C_
     {
         public string Name { get; set; }
         public string Platform { get; set; }
-        public int Year { get; set; }
+        public string Year { get; set; }
         public string Genre { get; set; }
         public string Publisher { get; set; }
         public double NA_Sales { get; set; }
@@ -34,7 +34,7 @@ namespace Lab2_Advanced_C_
         {
             Name = "No Name";
             Platform = "No Platform";
-            Year = 0;
+            Year = "No Year";
             Genre = "No Genre";
             Publisher = "No Publisher";
             NA_Sales = 0.0;
@@ -60,7 +60,7 @@ namespace Lab2_Advanced_C_
         }
 
         // Parameterized Constructor
-        public VideoGame(string name, string platform, int year, string genre, string publisher, double nA_Sales, double eU_Sales, double jP_Sales, double otherSales, double globalSales)
+        public VideoGame(string name, string platform, string year, string genre, string publisher, double nA_Sales, double eU_Sales, double jP_Sales, double otherSales, double globalSales)
         {
             Name = name;
             Platform = platform;
